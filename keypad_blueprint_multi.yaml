@@ -1,6 +1,6 @@
 blueprint:
   name: Ring Keypad Automations (Multi-Keypad)
-  description: Automations to use one or more Ring Keypads with an Alarm Panel integration. Inbound events are accepted from every selected keypad; outbound indicator commands are sent via Z-Wave JS multicast. See https://github.com/ImSorryButWho/HomeAssistantNotes/blob/main/RingKeypadV2.md for more information.
+  description: Automations to use one or more Ring Keypads with an Alarm Panel integration. Inbound events are accepted from every selected keypad; outbound indicator commands are sent via Z-Wave JS multicast (countdown timers are sent as one command per keypad). See https://github.com/ImSorryButWho/HomeAssistantNotes/blob/main/RingKeypadV2.md for more information.
   domain: automation
   input:
     keypads:
@@ -263,64 +263,44 @@ action:
         - condition: trigger
           id: alarm_arming
       sequence:
-        - service: zwave_js.multicast_set_value
+        - service: zwave_js.invoke_cc_api
           target:
             device_id: !input keypads
           data:
-            command_class: "135"
-            endpoint: "0"
-            property: "18"
-            property_key: "6"
-            value: "{{ delay_minutes }}"
-        - service: zwave_js.multicast_set_value
-          target:
-            device_id: !input keypads
-          data:
-            command_class: "135"
-            endpoint: "0"
-            property: "18"
-            property_key: "7"
-            value: "{{ delay_seconds }}"
-        - service: zwave_js.multicast_set_value
-          target:
-            device_id: !input keypads
-          data:
-            command_class: "135"
-            endpoint: "0"
-            property: "18"
-            property_key: "1"
-            value: 99
+            command_class: 135
+            endpoint: 0
+            method_name: set
+            parameters:
+              - - indicatorId: 18
+                  propertyId: 1
+                  value: 99
+                - indicatorId: 18
+                  propertyId: 6
+                  value: "{{ delay_minutes }}"
+                - indicatorId: 18
+                  propertyId: 7
+                  value: "{{ delay_seconds }}"
     - conditions:
         - condition: trigger
           id: alarm_pending
       sequence:
-        - service: zwave_js.multicast_set_value
+        - service: zwave_js.invoke_cc_api
           target:
             device_id: !input keypads
           data:
-            command_class: "135"
-            endpoint: "0"
-            property: "17"
-            property_key: "6"
-            value: "{{ delay_minutes }}"
-        - service: zwave_js.multicast_set_value
-          target:
-            device_id: !input keypads
-          data:
-            command_class: "135"
-            endpoint: "0"
-            property: "17"
-            property_key: "7"
-            value: "{{ delay_seconds }}"
-        - service: zwave_js.multicast_set_value
-          target:
-            device_id: !input keypads
-          data:
-            command_class: "135"
-            endpoint: "0"
-            property: "17"
-            property_key: "1"
-            value: 99
+            command_class: 135
+            endpoint: 0
+            method_name: set
+            parameters:
+              - - indicatorId: 17
+                  propertyId: 1
+                  value: 99
+                - indicatorId: 17
+                  propertyId: 6
+                  value: "{{ delay_minutes }}"
+                - indicatorId: 17
+                  propertyId: 7
+                  value: "{{ delay_seconds }}"
     - conditions:
         - condition: trigger
           id: alarm_triggered
