@@ -1,6 +1,6 @@
 blueprint:
   name: Ring Keypad Automations (Multi-Keypad)
-  description: Automations to use one or more Ring Keypads with an Alarm Panel integration. Inbound events are accepted from every selected keypad; outbound indicator commands are sent via Z-Wave JS multicast. See https://github.com/ImSorryButWho/HomeAssistantNotes/blob/main/RingKeypadV2.md for more information.
+  description: Automations to use one or more Ring Keypads with an Alarm Panel integration. Inbound events are accepted from every selected keypad; outbound indicator commands are sent via Z-Wave JS multicast (countdown timers are sent per keypad). See https://github.com/ImSorryButWho/HomeAssistantNotes/blob/main/RingKeypadV2.md for more information.
   domain: automation
   input:
     keypads:
@@ -266,7 +266,7 @@ action:
         - condition: trigger
           id: alarm_arming
       sequence:
-        - service: zwave_js.multicast_set_value
+        - service: zwave_js.set_value
           target:
             device_id: !input keypads
           data:
@@ -279,7 +279,7 @@ action:
         - condition: trigger
           id: alarm_pending
       sequence:
-        - service: zwave_js.multicast_set_value
+        - service: zwave_js.set_value
           target:
             device_id: !input keypads
           data:
