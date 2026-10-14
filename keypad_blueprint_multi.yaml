@@ -160,4 +160,189 @@ action:
                 - condition: trigger
                   id: keypad_arm_away
                 - condition: trigger
-                  id: keypa
+                  id: keypad_arm_home
+            - condition: state
+              entity_id: !input alarm
+              state: disarmed
+      sequence:
+        - service: alarmo.arm
+          data:
+            entity_id: !input alarm
+            mode: '{{ trigger.id.split("_")[2] }}'
+            force: false
+            code: >
+              {% if trigger.event.data.event_data != none %}
+                {{ trigger.event.data.event_data }}
+              {% endif %}
+        - wait_for_trigger:
+            - platform: event
+              event_type: zwave_js_notification
+              event_data:
+                command_class: 111
+                # only accept the confirmation from the keypad that started the arming
+                device_id: "{{ trigger.event.data.device_id }}"
+                event_type: 2
+                event_data: null
+          timeout: '5'
+          continue_on_timeout: false
+        - service: alarmo.arm
+          data:
+            entity_id: !input alarm
+            mode: '{{ trigger.id.split("_")[2] }}'
+            force: true
+            code: >
+              {% if trigger.event.data.event_data != none %}
+                {{ trigger.event.data.event_data }}
+              {% endif %}
+    - conditions:
+        - condition: trigger
+          id: invalid_code
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "9"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: need_bypass
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "16"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_disarmed
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "2"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_armed_away
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "11"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_armed_home
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "10"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_arming
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "18"
+            property_key: "6"
+            value: "{{ delay_minutes }}"
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "18"
+            property_key: "7"
+            value: "{{ delay_seconds }}"
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "18"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_pending
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "17"
+            property_key: "6"
+            value: "{{ delay_minutes }}"
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "17"
+            property_key: "7"
+            value: "{{ delay_seconds }}"
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "17"
+            property_key: "1"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: alarm_triggered
+      sequence:
+        - service: zwave_js.multicast_set_value
+          target:
+            device_id: !input keypads
+          data:
+            command_class: "135"
+            endpoint: "0"
+            property: "13"
+            property_key: "9"
+            value: 99
+    - conditions:
+        - condition: trigger
+          id: keypad_fire
+      sequence: !input selected_action_fire
+    - conditions:
+        - condition: trigger
+          id: keypad_police
+      sequence: !input selected_action_police
+    - conditions:
+        - condition: trigger
+          id: keypad_medical
+      sequence: !input selected_action_medical
