@@ -96,11 +96,13 @@ trigger:
   - platform: event
     event_type: "alarmo_failed_to_arm"
     event_data:
+      entity_id: !input alarm
       reason: "invalid_code"
     id: invalid_code
   - platform: event
     event_type: "alarmo_failed_to_arm"
     event_data:
+      entity_id: !input alarm
       reason: "open_sensors"
     id: need_bypass
   - platform: state
